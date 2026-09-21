@@ -1,4 +1,4 @@
-pd# 🚗 Spares_Auto
+## Spares_Auto
 
 > A modern, responsive automotive spare-parts product showcase designed to provide customers with a simple, engaging, and user-friendly online shopping experience.
 
