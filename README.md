@@ -1,4 +1,4 @@
-# 🚗 AutoSpares Shop
+pd# 🚗 Spares_Auto
 
 > A modern, responsive automotive spare-parts product showcase designed to provide customers with a simple, engaging, and user-friendly online shopping experience.
 
@@ -6,7 +6,7 @@
 
 ## 📖 Project Overview
 
-**AutoSpares Shop** is a responsive frontend product showcase for an online automotive spare-parts store.
+**Spares_Auto** is a responsive frontend product showcase for an online automotive spare-parts store.
 
 The project focuses on creating a professional e-commerce interface where customers can browse automotive spare parts, view product information, interact with product cards, explore filtering and sorting options, and access a shopping cart interface.
 
