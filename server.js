@@ -1,7 +1,8 @@
-/* ==========================================================================
-   Spares_Auto Shop — API Layer (Node.js / Express)
-   Implements System Design Specification §4: Backend API Interface
-   ========================================================================== */
+/*
+  Spares_Auto backend server.
+  This file serves the storefront, exposes the product API, validates orders,
+  and updates the in-memory inventory during checkout.
+*/
 
 const express = require('express');
 const cors = require('cors');
@@ -12,12 +13,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); // serves index.html, style.css, script.js
+app.use(express.static(path.join(__dirname, 'public'))); // Serve the frontend files.
 
-/* ==========================================================================
-   In-memory "garage operations system" catalog
-   (stands in for a real inventory DB per §4)
-   ========================================================================== */
+// Simple in-memory product catalog. This acts like a database for now.
 let products = [
   {
     id: '1',
@@ -59,12 +57,7 @@ let products = [
 
 let orderSequence = 1000;
 
-/* ==========================================================================
-   Render engine
-   Generates the cart-sidebar markup server-side. Used to hand the client
-   fresh HTML for the "empty cart" state right after checkout, instead of
-   leaving that markup to be rebuilt client-side.
-   ========================================================================== */
+// Build the cart HTML that the frontend can use after checkout.
 function renderCartItemsHTML(cartItems) {
   if (!cartItems || cartItems.length === 0) {
     return '<p class="empty-cart">Cart is empty</p>';
@@ -89,13 +82,7 @@ function renderCartTotalHTML(total) {
   return `$${Number(total || 0).toFixed(2)}`;
 }
 
-/**
- * clearCart — the render-engine function invoked after a successful
- * checkout. It resets the cart state to empty and dynamically generates
- * the HTML fragments the client needs to reflect that (cart items list,
- * total, and count), rather than the client having to reconstruct the
- * "empty" UI on its own.
- */
+// Reset the cart after a successful order and return the empty-cart HTML.
 function clearCart() {
   const emptyCart = [];
   return {
@@ -115,20 +102,12 @@ function escapeHTML(str = '') {
     .replace(/'/g, '&#39;');
 }
 
-/* ==========================================================================
-   GET /api/products
-   Fetch the full catalog of auto spare parts, including categories and
-   stock levels.
-   ========================================================================== */
+// Return the full product catalog to the frontend.
 app.get('/api/products', (req, res) => {
   res.json(products);
 });
 
-/* ==========================================================================
-   POST /api/checkout
-   Submit the user's cart state to generate a service job card, deduct
-   from central inventory, and clear + re-render the cart.
-   ========================================================================== */
+// Accept the cart, validate it, reduce stock, and create an order.
 app.post('/api/checkout', (req, res) => {
   const { cart, total } = req.body || {};
 
@@ -136,7 +115,7 @@ app.post('/api/checkout', (req, res) => {
     return res.status(400).json({ success: false, message: 'Cart is empty or invalid.' });
   }
 
-  // Validate stock and line-item pricing against the catalog before committing.
+  // Check that each item exists, has a valid quantity, and is in stock.
   for (const item of cart) {
     const product = products.find((p) => p.id === String(item.id));
     if (!product) {
@@ -153,18 +132,18 @@ app.post('/api/checkout', (req, res) => {
     }
   }
 
-  // Deduct from central inventory.
+  // Reduce the stock for each product that was purchased.
   cart.forEach((item) => {
     const product = products.find((p) => p.id === String(item.id));
     product.stock -= item.quantity;
   });
 
-  // Generate a service job card / order ID.
+  // Create a unique order ID and calculate the total.
   orderSequence += 1;
   const orderId = `JOB-${orderSequence}`;
   const computedTotal = cart.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
 
-  // Render engine: clear the cart and produce fresh HTML for the client.
+  // Reset the cart state and return the empty-cart HTML to the client.
   const rendered = clearCart();
 
   res.status(201).json({
