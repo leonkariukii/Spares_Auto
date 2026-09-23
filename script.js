@@ -62,9 +62,9 @@ function normalizeProducts(data) {
     id: String(p.id),
     name: p.name,
     price: Number(p.price),
-    category: p.category,
+    category: String(p.category || ''),
     stock: Number(p.stock),
-    description: p.description || '',
+    description: String(p.description || ''),
     image: p.image || '',
   }));
 }
@@ -74,9 +74,9 @@ function readProductsFromDOM() {
     id: el.dataset.id,
     name: el.dataset.name,
     price: Number(el.dataset.price),
-    category: el.dataset.category,
+    category: String(el.dataset.category || ''),
     stock: Number(el.dataset.stock),
-    description: el.querySelector('p')?.textContent || '',
+    description: String(el.querySelector('p')?.textContent || ''),
     image: el.querySelector('img')?.getAttribute('src') || '',
   }));
 }
