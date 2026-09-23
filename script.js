@@ -130,11 +130,6 @@ function sortProducts(list, sortBy) {
       return sorted.sort((a, b) => a.price - b.price);
     case 'price-high':
       return sorted.sort((a, b) => b.price - a.price);
-    case 'name':
-      return sorted.sort((a, b) => a.name.localeCompare(b.name));
-    default:
-      return sorted;
-  }
 }
 
 categoryFilter.addEventListener('change', renderProducts);
