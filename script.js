@@ -116,6 +116,8 @@ function renderProducts() {
 
     item.querySelector('.view-details-btn').addEventListener('click', () => openModal(p.id));
     item.querySelector('.add-to-cart-btn').addEventListener('click', () => addToCart(p.id, 1));
+    item.querySelector('img').addEventListener('click', () => openModal(p.id)); 
+    item.querySelector('h4').addEventListener('click', () => openModal(p.id));
 
     productList.appendChild(item);
   });
