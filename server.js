@@ -67,7 +67,7 @@ let orderSequence = 1000;
    ========================================================================== */
 function renderCartItemsHTML(cartItems) {
   if (!cartItems || cartItems.length === 0) {
-    return '<p class="empty-cart">Your cart is empty</p>';
+    return '<p class="empty-cart">Cart is empty</p>';
   }
 
   return cartItems
