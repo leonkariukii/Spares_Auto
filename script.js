@@ -1,18 +1,19 @@
-/* ==========================================================================
-   Spares_Auto Shop — Client Behavioral Layer
-   Implements System Design Specification §3 (Frontend) and §4 (Backend API)
-   ========================================================================== */
+/*
+  Spares_Auto shop UI logic.
+  This file handles the storefront behavior: loading products, updating the cart,
+  filtering items, opening a modal, and sending checkout requests.
+*/
 
-/* ---- §3 State Management: in-memory cart array ---- */
+// Current cart items in memory.
 let cart = [];
 
-/* ---- §3 Data source: rendered from GET /api/products, falls back to the
-   server-rendered grid already in the DOM if the API is unreachable ---- */
+// Product data loaded from the API. If the API is unavailable, we fall back to
+// the HTML already on the page.
 let products = [];
 
 const API_BASE = '/api';
 
-/* ---------------------------- DOM References ---------------------------- */
+// Grab the main UI elements we need to update.
 const productList = document.getElementById('product-list');
 const categoryFilter = document.getElementById('category-filter');
 const sortSelect = document.getElementById('sort-select');
@@ -39,10 +40,8 @@ const addToCartModalBtn = document.getElementById('add-to-cart-modal');
 
 let activeModalProductId = null;
 
-/* ==========================================================================
-   §5 Next Steps: dynamic rendering fetched from GET /api/products
-   ========================================================================== */
-
+// Load products from the backend. If that fails, use the product data already
+// rendered in the page.
 async function loadProducts() {
   try {
     const res = await fetch(`${API_BASE}/products`);
@@ -81,7 +80,8 @@ function readProductsFromDOM() {
   }));
 }
 
-/* ---- §3 Data Binding: data-* attributes carry product info into the DOM ---- */
+// Build the product cards and refresh the list whenever the filters or sort
+// settings change.
 function renderProducts() {
   const category = categoryFilter.value;
   const sortBy = sortSelect.value;
@@ -135,10 +135,7 @@ function sortProducts(list, sortBy) {
 categoryFilter.addEventListener('change', renderProducts);
 sortSelect.addEventListener('change', renderProducts);
 
-/* ==========================================================================
-   Cart state management (§3) — quantities and cumulative totals
-   ========================================================================== */
-
+// Handle cart updates: add items, remove items, and keep totals in sync.
 function addToCart(productId, quantity) {
   const product = products.find((p) => p.id === productId);
   if (!product) return;
@@ -208,7 +205,7 @@ function renderCart() {
   });
 }
 
-/* ---- Cart sidebar open/close ---- */
+// Open and close the cart drawer.
 function openCart() {
   cartSidebar.classList.add('open');
 }
@@ -218,10 +215,8 @@ function closeCart() {
 cartToggle.addEventListener('click', openCart);
 cartClose.addEventListener('click', closeCart);
 
-/* ==========================================================================
-   Product Detail Modal
-   ========================================================================== */
-
+// Show a popup with more details about a product and let the user choose a
+// quantity before adding it to the cart.
 function openModal(productId) {
   const product = products.find((p) => p.id === productId);
   if (!product) return;
@@ -272,10 +267,7 @@ addToCartModalBtn.addEventListener('click', () => {
   closeModal();
 });
 
-/* ==========================================================================
-   §4 Backend API Interface — POST /api/checkout
-   ========================================================================== */
-
+// Send the cart to the backend to complete checkout.
 async function checkout() {
   if (cart.length === 0) {
     alert('Your cart is empty.');
@@ -323,9 +315,7 @@ async function checkout() {
 
 checkoutBtn.addEventListener('click', checkout);
 
-/* ==========================================================================
-   Init
-   ========================================================================== */
+// Run the main setup when the page has loaded.
 document.addEventListener('DOMContentLoaded', () => {
   loadProducts();
   renderCart();
