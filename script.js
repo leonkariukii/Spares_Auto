@@ -50,9 +50,8 @@ async function loadProducts() {
     const data = await res.json();
     products = normalizeProducts(data);
   } catch (err) {
-    // Backend not available yet (e.g. static preview) — degrade gracefully
     // by reading the product data already baked into the HTML grid.
-    console.warn('Falling back to static product grid:', err.message);
+    console.warn('Falling back to static product data:', err.message);
     products = readProductsFromDOM();
   }
   renderProducts();
