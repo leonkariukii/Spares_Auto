@@ -5,13 +5,14 @@
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname)); // serves index.html, style.css, script.js
+app.use(express.static(path.join(__dirname, 'public'))); // serves index.html, style.css, script.js
 
 /* ==========================================================================
    In-memory "garage operations system" catalog
