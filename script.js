@@ -92,7 +92,7 @@ function renderProducts() {
   productList.innerHTML = '';
 
   if (visible.length === 0) {
-    productList.innerHTML = '<p class="empty-cart">No products match this filter.</p>';
+    productList.innerHTML = '<p class="empty-cart">No products is available.</p>';
     return;
   }
 
