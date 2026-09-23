@@ -1,10 +1,8 @@
 ## Spares_Auto
 
-> A modern, responsive automotive spare-parts product showcase designed to provide customers with a simple, engaging, and user-friendly online shopping experience.
+A modern, responsive automotive spare-parts product showcase designed to provide customers with a simple, engaging, and user-friendly online shopping experience.
 
----
-
-## 📖 Project Overview
+##  Project Overview
 
 **Spares_Auto** is a responsive frontend product showcase for an online automotive spare-parts store.
 
@@ -28,8 +26,6 @@ The project was developed to demonstrate practical skills in:
 
 The project is currently focused on the **frontend user interface**. Backend functionality, authentication, payment processing, inventory management, and database integration can be added in future versions.
 
----
-
 ## 🎯 Project Objectives
 
 The main objectives of AutoSpares Shop are to:
@@ -48,9 +44,7 @@ The main objectives of AutoSpares Shop are to:
 - Optimize the website for performance.
 - Test the website across modern browsers and devices.
 - Practice Git-based development and collaboration.
-
----
-
+  
 ## ✨ Features
 
 ### 🛍️ Product Catalogue
@@ -69,7 +63,6 @@ Each product card includes:
 
 The product grid is built using **CSS Grid** and automatically adapts to different screen sizes.
 
----
 
 ### 🔎 Filter and Sort Interface
 
@@ -88,7 +81,6 @@ Available options include:
 
 > **Note:** The current implementation focuses on the UI. Functional filtering and sorting logic can be implemented in a future version.
 
----
 
 ### 📦 Product Detail Modal
 
@@ -107,8 +99,6 @@ The modal can contain:
 
 The modal allows users to inspect products without leaving the main catalogue.
 
----
-
 ### 🛒 Shopping Cart Sidebar
 
 The project includes a static shopping-cart sidebar.
@@ -124,8 +114,6 @@ The cart interface contains:
 - Checkout button
 
 > **Note:** The current cart is a frontend UI demonstration and does not process real payments or orders.
-
----
 
 ### 📱 Responsive Design
 
@@ -154,8 +142,6 @@ AutoSpares Shop is designed to work across different screen sizes.
 - Responsive product modal
 - Mobile-friendly shopping cart
 
----
-
 ### 🌙 Dark Mode
 
 The project includes a dark-mode interface.
@@ -172,8 +158,6 @@ The theme controls:
 - Buttons
 - Sections
 
----
-
 ### ♿ Accessibility
 
 Accessibility is considered throughout the project.
@@ -188,8 +172,6 @@ The interface focuses on:
 - Visible focus states
 - Readable typography
 - Touch-friendly controls
-
----
 
 ### ✨ Micro-interactions
 
@@ -209,8 +191,6 @@ Examples include:
 
 Animations are kept lightweight to maintain good performance.
 
----
-
 ### 🖨️ Print Stylesheet
 
 A dedicated print stylesheet is included for product information.
@@ -223,8 +203,6 @@ Unnecessary interactive elements can be hidden when printing, including:
 - Interactive buttons
 
 This allows important product information to remain readable on printed pages.
-
----
 
 # 🛠️ Technologies Used
 
@@ -244,8 +222,6 @@ This allows important product information to remain readable on printed pages.
 | Chrome DevTools | Testing and debugging |
 | Lighthouse | Performance and accessibility auditing |
 
----
-
 # 🏪 Product Categories
 
 The initial product catalogue focuses on common automotive spare parts:
@@ -261,40 +237,3 @@ The initial product catalogue focuses on common automotive spare parts:
 
 The product catalogue can be expanded as the project develops.
 
----
-
-# 📂 Project Structure
-
-```text
-autospares-shop/
-│
-├── index.html
-│
-├── css/
-│   ├── style.css
-│   ├── responsive.css
-│   └── print.css
-│
-├── images/
-│   ├── products/
-│   │   ├── brake-pads.jpg
-│   │   ├── oil-filter.jpg
-│   │   ├── air-filter.jpg
-│   │   ├── spark-plugs.jpg
-│   │   ├── car-battery.jpg
-│   │   ├── engine-belt.jpg
-│   │   ├── headlights.jpg
-│   │   └── shock-absorber.jpg
-│   │
-│   └── logo/
-│       └── logo.png
-│
-├── assets/
-│   └── icons/
-│
-├── pages/
-│   └── product.html
-│
-├── README.md
-│
-└── LICENSE
