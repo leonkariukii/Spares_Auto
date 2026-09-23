@@ -1,0 +1,13 @@
+{
+  "name": "spares-auto-shop-server",
+  "version": "1.0.0",
+  "description": "Mock backend API for the Spares_Auto Shop (garage operations system interface)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
