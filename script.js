@@ -1,5 +1,18 @@
 ﻿const API_BASE = '/api';
-const state = { cart: [], products: [], query: '', brand: '', modalId: null, lastOrder: null, isCheckingOut: false };
+const state = {
+  cart: [],
+  products: [],
+  query: '',
+  brand: '',
+  modalId: null,
+  lastOrder: null,
+  isCheckingOut: false,
+  auth: {
+    user: null,
+    token: null
+  }
+};
+
 const els = {
   list: document.getElementById('product-list'),
   category: document.getElementById('category-filter'),
@@ -84,6 +97,46 @@ function readProductsFromDOM() {
 
 function setActivePill(buttons, value, key) {
   buttons.forEach((button) => button.classList.toggle('active', button.dataset[key] === value));
+}
+
+function getStoredAuth() {
+  try {
+    const user = localStorage.getItem('sparesAutoUser');
+    const token = localStorage.getItem('sparesAutoToken');
+    if (!user || !token) return { user: null, token: null };
+    return { user: JSON.parse(user), token };
+  } catch (error) {
+    console.warn('Unable to restore auth session:', error);
+    return { user: null, token: null };
+  }
+}
+
+function saveAuthSession(user, token) {
+  state.auth.user = user;
+  state.auth.token = token;
+  localStorage.setItem('sparesAutoUser', JSON.stringify(user));
+  localStorage.setItem('sparesAutoToken', token);
+}
+
+function clearAuthSession() {
+  state.auth.user = null;
+  state.auth.token = null;
+  localStorage.removeItem('sparesAutoUser');
+  localStorage.removeItem('sparesAutoToken');
+}
+
+function renderAuthUI() {
+  if (!els.profile) return;
+
+  if (!state.auth.user) {
+    els.profile.innerHTML = '<span aria-hidden="true">&#128100;</span>';
+    els.profile.title = 'Login / Profile';
+    return;
+  }
+
+  const name = state.auth.user.name || 'Profile';
+  els.profile.innerHTML = `<span aria-hidden="true">&#128100;</span><span class="profile-label">${escapeHTML(name)}</span>`;
+  els.profile.title = `Logged in as ${name}`;
 }
 
 async function loadProducts() {
@@ -274,6 +327,12 @@ async function checkout() {
     return;
   }
 
+  if (!state.auth.token) {
+    showToast('Please log in before checking out.', 'error');
+    els.login.classList.add('open');
+    return;
+  }
+
   if (state.isCheckingOut) return;
 
   const payload = {
@@ -288,7 +347,10 @@ async function checkout() {
   try {
     const response = await fetch(`${API_BASE}/checkout`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${state.auth.token}`
+      },
       body: JSON.stringify(payload)
     });
     const result = await response.json();
@@ -345,23 +407,58 @@ function bindEvents() {
   els.cartToggle.addEventListener('click', () => els.cart.classList.add('open'));
   els.cartClose.addEventListener('click', () => els.cart.classList.remove('open'));
   els.navCart.addEventListener('click', () => els.cart.classList.add('open'));
-  els.profile.addEventListener('click', () => els.login.classList.add('open'));
+  els.profile.addEventListener('click', () => {
+    if (state.auth.user) {
+      clearAuthSession();
+      renderAuthUI();
+      showToast('Logged out successfully.', 'success');
+      return;
+    }
+
+    els.login.classList.add('open');
+  });
+
   els.closeLogin.addEventListener('click', () => els.login.classList.remove('open'));
   els.login.addEventListener('click', (event) => {
     if (event.target === els.login) els.login.classList.remove('open');
   });
 
-  els.loginForm.addEventListener('submit', (event) => {
+  els.loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
+
     const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value.trim();
     const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
     if (!valid) {
       showToast('Please enter a valid email.', 'error');
       return;
     }
-    els.loginForm.reset();
-    els.login.classList.remove('open');
-    showToast('Login successful', 'success');
+
+    if (!password) {
+      showToast('Please enter your password.', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || 'Login failed');
+
+      saveAuthSession(result.user, result.token);
+      renderAuthUI();
+      els.loginForm.reset();
+      els.login.classList.remove('open');
+      showToast(`Welcome back, ${result.user.name}!`, 'success');
+    } catch (error) {
+      console.error('Login error:', error);
+      showToast(error.message || 'Login failed. Please try again.', 'error');
+    }
   });
 
   els.closeModal.addEventListener('click', closeModal);
@@ -415,8 +512,13 @@ function bindEvents() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const restoredAuth = getStoredAuth();
+  state.auth.user = restoredAuth.user;
+  state.auth.token = restoredAuth.token;
+
   bindEvents();
   renderCart();
+  renderAuthUI();
   loadProducts();
   hideCheckoutSuccess();
 });
