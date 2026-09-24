@@ -12,11 +12,20 @@
         <hr>
         <nav class="navbar">
             <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="products.html">Products</a></li>
-                <li><a href="about.html">About Us</a></li>
-                <li><a href="contact.html">Contact</a></li>
+                <li><a href="#header">Home</a></li>
+                <li><a href="#featured-products">Products</a></li>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#contact">Contact</a></li>
             </ul>
+            <div class="nav-icons">
+                <button class="nav-icon-btn" id="profile-icon-btn" type="button" title="Login / Profile" aria-label="Login or view profile">
+                    <span aria-hidden="true">&#128100;</span>
+                </button>
+                <button class="nav-icon-btn" id="nav-cart-btn" type="button" title="Cart" aria-label="Open cart">
+                    <span aria-hidden="true">&#128722;</span>
+                    <span class="nav-cart-badge" id="nav-cart-count">0</span>
+                </button>
+            </div>
         </nav>
     </header>
     
@@ -37,6 +46,23 @@
             <button class="checkout-btn">Proceed to Checkout</button>
         </div>
     </aside>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content login-modal-content">
+            <button class="modal-close" id="login-modal-close">&times;</button>
+            <div class="login-modal-body">
+                <h2>Login to Your Account</h2>
+                <form id="login-form">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="you@example.com" required>
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="********" required>
+                    <button type="submit" class="login-submit-btn">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Product Detail Modal -->
     <div id="product-modal" class="modal">
@@ -68,6 +94,10 @@
         <section id="hero">
             <h2>Welcome to Auto Spares Shop</h2>
             <p>Your one-stop shop for all auto spare parts.</p>
+            <form class="search-form" id="search-form" role="search">
+                <input type="text" id="search-input" class="search-input" placeholder="Search for parts..." aria-label="Search products">
+                <button type="submit" class="search-btn" id="search-btn">Search</button>
+            </form>
         </section>
         
         <!-- Cart Toggle & Filter/Sort Section -->
@@ -99,10 +129,30 @@
             </div>
         </section>
         
+        <section id="categories" class="shop-by-section">
+            <h3>Shop by Category</h3>
+            <div class="pill-buttons" id="category-buttons">
+                <button type="button" class="pill-btn active" data-category="">All</button>
+                <button type="button" class="pill-btn" data-category="filters">Filters</button>
+                <button type="button" class="pill-btn" data-category="plugs">Plugs</button>
+                <button type="button" class="pill-btn" data-category="pads">Pads</button>
+            </div>
+        </section>
+
+        <section id="brands" class="shop-by-section">
+            <h3>Shop by Vehicle Brand</h3>
+            <div class="pill-buttons" id="brand-buttons">
+                <button type="button" class="pill-btn active" data-brand="">All Brands</button>
+                <button type="button" class="pill-btn" data-brand="toyota">Toyota</button>
+                <button type="button" class="pill-btn" data-brand="ford">Ford</button>
+                <button type="button" class="pill-btn" data-brand="honda">Honda</button>
+            </div>
+        </section>
+
         <section id="featured-products">
             <h3>Featured Products</h3>
             <div class="product-list" id="product-list">
-                <div class="product-item" data-id="1" data-name="Brake Pads" data-price="45.99" data-category="pads" data-stock="15">
+                <div class="product-item" data-id="1" data-name="Brake Pads" data-price="45.99" data-category="pads" data-stock="15" data-brand="toyota">
                     <img src="images/brake pads.jpg" alt="Brake Pads">
                     <h4>Brake Pads</h4>
                     <p>High-quality brake pads for various car models.</p>
@@ -111,7 +161,7 @@
                     <button class="add-to-cart-btn">Add to Cart</button>
                 </div>
                 
-                <div class="product-item" data-id="2" data-name="Oil Filters" data-price="32.50" data-category="filters" data-stock="20">
+                <div class="product-item" data-id="2" data-name="Oil Filters" data-price="32.50" data-category="filters" data-stock="20" data-brand="ford">
                     <img src="images/oil filter.jpg" alt="Oil Filters">
                     <h4>Oil Filters</h4>
                     <p>Durable oil filters to keep your engine running smoothly.</p>
@@ -120,7 +170,7 @@
                     <button class="add-to-cart-btn">Add to Cart</button>
                 </div>
                 
-                <div class="product-item" data-id="3" data-name="Spark Plugs" data-price="28.99" data-category="plugs" data-stock="25">
+                <div class="product-item" data-id="3" data-name="Spark Plugs" data-price="28.99" data-category="plugs" data-stock="25" data-brand="honda">
                     <img src="images/spark plugs.jpg" alt="Spark Plugs">
                     <h4>Spark Plugs</h4>
                     <p>Reliable spark plugs for optimal engine performance.</p>
@@ -129,7 +179,7 @@
                     <button class="add-to-cart-btn">Add to Cart</button>
                 </div>
                 
-                <div class="product-item" data-id="4" data-name="Air Filters" data-price="22.00" data-category="filters" data-stock="18">
+                <div class="product-item" data-id="4" data-name="Air Filters" data-price="22.00" data-category="filters" data-stock="18" data-brand="ford">
                     <img src="images/air filter.jpg" alt="Air Filters">
                     <h4>Air Filters</h4>
                     <p>High-efficiency air filters for clean airflow.</p>
@@ -139,8 +189,21 @@
                 </div>
             </div>
         </section>
+        <section id="about">
+            <h3>About Us</h3>
+            <p>Spares_Auto Shop has supplied quality auto spare parts for over a decade, helping drivers keep their vehicles running safely and reliably.</p>
+        </section>
+
+        <section id="contact">
+            <h3>Contact Us</h3>
+            <p>Email: info@autospares.com</p>
+            <p>Phone: +254112262121</p>
+        </section>
     </main>
-    
+
+    <!-- Toast / Alert Notifications -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
     <footer>
         <p>&copy; 2026 Auto Spares Shop. All rights reserved.</p>
         <p>Contact us: info@autospares.com | Phone: +254112262121</p>
