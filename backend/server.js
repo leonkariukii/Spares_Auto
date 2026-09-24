@@ -11,8 +11,8 @@ const users = [
   {
     id: 'u-1001',
     name: 'Demo User',
-    email: 'demo@sparesauto.com',
-    password: 'password123'
+    email: 'wakanyileonard@gmail.com',
+    password: '1234567'
   },
   {
     id: 'u-1002',
