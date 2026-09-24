@@ -1,453 +1,356 @@
-/*
-  Spares_Auto shop UI logic.
-  This file handles the storefront behavior: loading products, updating the cart,
-  filtering items, opening a modal, and sending checkout requests.
-*/
+﻿const API_BASE = '/api';
+const state = { cart: [], products: [], query: '', brand: '', modalId: null };
+const els = {
+  list: document.getElementById('product-list'),
+  category: document.getElementById('category-filter'),
+  sort: document.getElementById('sort-select'),
+  cart: document.getElementById('cart-sidebar'),
+  cartItems: document.getElementById('cart-items'),
+  cartTotal: document.getElementById('cart-total'),
+  cartCount: document.getElementById('cart-count'),
+  navCount: document.getElementById('nav-cart-count'),
+  checkout: document.querySelector('.checkout-btn'),
+  searchForm: document.getElementById('search-form'),
+  searchInput: document.getElementById('search-input'),
+  login: document.getElementById('login-modal'),
+  loginForm: document.getElementById('login-form'),
+  modal: document.getElementById('product-modal'),
+  modalTitle: document.getElementById('modal-title'),
+  modalDesc: document.getElementById('modal-description'),
+  modalPrice: document.getElementById('modal-price'),
+  modalStock: document.getElementById('modal-stock'),
+  modalImage: document.getElementById('modal-image'),
+  quantity: document.getElementById('quantity'),
+  toast: document.getElementById('toast-container'),
+  cartToggle: document.getElementById('cart-toggle'),
+  cartClose: document.getElementById('cart-close'),
+  navCart: document.getElementById('nav-cart-btn'),
+  profile: document.getElementById('profile-icon-btn'),
+  closeLogin: document.getElementById('login-modal-close'),
+  closeModal: document.getElementById('modal-close'),
+  qtyMinus: document.getElementById('qty-minus'),
+  qtyPlus: document.getElementById('qty-plus'),
+  addModal: document.getElementById('add-to-cart-modal'),
+  categoryButtons: document.querySelectorAll('#category-buttons .pill-btn'),
+  brandButtons: document.querySelectorAll('#brand-buttons .pill-btn') 
+};
 
-// Current cart items in memory.
-let cart = [];
-
-// Product data loaded from the API. If the API is unavailable, we fall back to
-// the HTML already on the page.
-let products = [];
-
-const API_BASE = '/api';
-
-function escapeHTML(str = '') {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+function escapeHTML(value = '') {
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;');
 }
 
-// Grab the main UI elements we need to update.
-const productList = document.getElementById('product-list');
-const categoryFilter = document.getElementById('category-filter');
-const sortSelect = document.getElementById('sort-select');
-
-const cartSidebar = document.getElementById('cart-sidebar');
-const cartToggle = document.getElementById('cart-toggle');
-const cartClose = document.getElementById('cart-close');
-const cartItemsEl = document.getElementById('cart-items');
-const cartTotalEl = document.getElementById('cart-total');
-const cartCountEl = document.getElementById('cart-count');
-const checkoutBtn = document.querySelector('.checkout-btn');
-
-// Header navbar icons (profile/login + cart).
-const profileIconBtn = document.getElementById('profile-icon-btn');
-const navCartBtn = document.getElementById('nav-cart-btn');
-const navCartCountEl = document.getElementById('nav-cart-count');
-
-// Shop by Category / Shop by Vehicle Brand pill buttons.
-const categoryButtons = document.querySelectorAll('#category-buttons .pill-btn');
-const brandButtons = document.querySelectorAll('#brand-buttons .pill-btn');
-let activeBrand = '';
-
-// Header search bar.
-const searchForm = document.getElementById('search-form');
-const searchInput = document.getElementById('search-input');
-let searchQuery = '';
-
-// Login modal.
-const loginModal = document.getElementById('login-modal');
-const loginModalClose = document.getElementById('login-modal-close');
-const loginForm = document.getElementById('login-form');
-
-// Toast/alert container.
-const toastContainer = document.getElementById('toast-container');
-
-const modal = document.getElementById('product-modal');
-const modalClose = document.getElementById('modal-close');
-const modalImage = document.getElementById('modal-image');
-const modalTitle = document.getElementById('modal-title');
-const modalDescription = document.getElementById('modal-description');
-const modalPrice = document.getElementById('modal-price');
-const modalStock = document.getElementById('modal-stock');
-const quantityInput = document.getElementById('quantity');
-const qtyMinus = document.getElementById('qty-minus');
-const qtyPlus = document.getElementById('qty-plus');
-const addToCartModalBtn = document.getElementById('add-to-cart-modal');
-
-let activeModalProductId = null;
-
-// Central toast/alert system used for cart, login, and checkout feedback.
 function showToast(message, type = 'success') {
+  if (!els.toast) return;
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.textContent = message;
-  toastContainer.appendChild(toast);
-
+  els.toast.appendChild(toast);
   setTimeout(() => {
     toast.classList.add('fade-out');
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }
 
-// Load products from the backend. If that fails, use the product data already
-// rendered in the page.
-async function loadProducts() {
-  try {
-    const res = await fetch(`${API_BASE}/products`);
-    if (!res.ok) throw new Error(`API responded with ${res.status}`);
-    const data = await res.json();
-    products = normalizeProducts(data);
-  } catch (err) {
-    // by reading the product data already baked into the HTML grid.
-    console.warn('Falling back to static product data:', err.message);
-    products = readProductsFromDOM();
-  }
-  renderProducts();
-}
-
-function normalizeProducts(data) {
-  return data.map((p) => ({
-    id: String(p.id),
-    name: p.name,
-    price: Number(p.price),
-    category: String(p.category || ''),
-    brand: String(p.brand || ''),
-    stock: Number(p.stock),
-    description: String(p.description || ''),
-    image: p.image || '',
-  }));
+function normalizeProduct(product) {
+  return {
+    id: String(product.id),
+    name: product.name,
+    price: Number(product.price) || 0,
+    category: String(product.category || ''),
+    brand: String(product.brand || ''),
+    stock: Number(product.stock) || 0,
+    description: product.description || 'No description available.',
+    image: product.image || ''
+  };
 }
 
 function readProductsFromDOM() {
-  return Array.from(document.querySelectorAll('.product-item')).map((el) => ({
-    id: el.dataset.id,
-    name: el.dataset.name,
-    price: Number(el.dataset.price),
-    category: String(el.dataset.category || ''),
-    brand: String(el.dataset.brand || ''),
-    stock: Number(el.dataset.stock),
-    description: String(el.querySelector('p')?.textContent || ''),
-    image: el.querySelector('img')?.getAttribute('src') || '',
+  return Array.from(document.querySelectorAll('.product-item')).map((item) => ({
+    id: item.dataset.id,
+    name: item.dataset.name,
+    price: Number(item.dataset.price) || 0,
+    category: String(item.dataset.category || ''),
+    brand: String(item.dataset.brand || ''),
+    stock: Number(item.dataset.stock) || 0,
+    description: item.querySelector('p')?.textContent || '',
+    image: item.querySelector('img')?.getAttribute('src') || ''
   }));
 }
 
-// Build the product cards and refresh the list whenever the filters or sort
-// settings change.
+function setActivePill(buttons, value, key) {
+  buttons.forEach((button) => button.classList.toggle('active', button.dataset[key] === value));
+}
+
+async function loadProducts() {
+  try {
+    const response = await fetch(`${API_BASE}/products`);
+    if (!response.ok) throw new Error('Products API failed');
+    const data = await response.json();
+    state.products = Array.isArray(data) ? data.map(normalizeProduct) : readProductsFromDOM();
+  } catch (error) {
+    console.warn('Using static products instead:', error.message);
+    state.products = readProductsFromDOM();
+  }
+  renderProducts();
+}
+
+function getVisibleProducts() {
+  const category = els.category.value;
+  let items = state.products.filter((product) => {
+    const matchCategory = !category || product.category === category;
+    const matchBrand = !state.brand || product.brand === state.brand;
+    return matchCategory && matchBrand;
+  });
+
+  if (state.query) {
+    const q = state.query.toLowerCase();
+    items = items.filter((product) => `${product.name} ${product.description}`.toLowerCase().includes(q));
+  }
+
+  if (els.sort.value === 'price-low') return items.sort((a, b) => a.price - b.price);
+  if (els.sort.value === 'price-high') return items.sort((a, b) => b.price - a.price);
+  if (els.sort.value === 'name') return items.sort((a, b) => a.name.localeCompare(b.name));
+  return items;
+}
+
 function renderProducts() {
-  const category = categoryFilter.value;
-  const sortBy = sortSelect.value;
-  const query = searchQuery.trim().toLowerCase();
-
-  let visible = products.filter((p) => !category || p.category === category);
-  visible = visible.filter((p) => !activeBrand || p.brand === activeBrand);
-  if (query) {
-    visible = visible.filter(
-      (p) => p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query)
-    );
-  }
-  visible = sortProducts(visible, sortBy);
-
-  productList.innerHTML = '';
-
-  if (visible.length === 0) {
-    productList.innerHTML = '<p class="empty-cart">No products is available.</p>';
+  els.list.innerHTML = '';
+  const items = getVisibleProducts();
+  if (!items.length) {
+    els.list.innerHTML = '<p class="empty-cart">No products is available.</p>';
     return;
   }
 
-  visible.forEach((p) => {
-    const item = document.createElement('div');
-    item.className = 'product-item';
-    item.dataset.id = p.id;
-    item.dataset.name = p.name;
-    item.dataset.price = p.price;
-    item.dataset.category = p.category;
-    item.dataset.brand = p.brand;
-    item.dataset.stock = p.stock;
-
-    item.innerHTML = `
-      <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}">
-      <h4>${escapeHTML(p.name)}</h4>
-      <p>${escapeHTML(p.description)}</p>
-      <div class="product-price">$${p.price.toFixed(2)}</div>
-      <button class="view-details-btn">View Details</button>
-      <button class="add-to-cart-btn">Add to Cart</button>
+  items.forEach((product) => {
+    const card = document.createElement('div');
+    card.className = 'product-item';
+    card.dataset.id = product.id;
+    card.dataset.name = product.name;
+    card.dataset.price = product.price;
+    card.dataset.category = product.category;
+    card.dataset.brand = product.brand;
+    card.dataset.stock = product.stock;
+    card.innerHTML = `
+      <img src='${product.image}' alt='${product.name}'>
+      <h4>${product.name}</h4>
+      <p>${product.description}</p>
+      <div class='product-price'>$${product.price.toFixed(2)}</div>
+      <button class='view-details-btn' type='button'>View Details</button>
+      <button class='add-to-cart-btn' type='button'>Add to Cart</button>
     `;
-
-    item.querySelector('.view-details-btn').addEventListener('click', () => openModal(p.id));
-    item.querySelector('.add-to-cart-btn').addEventListener('click', () => addToCart(p.id, 1));
-    item.querySelector('img').addEventListener('click', () => openModal(p.id)); 
-    item.querySelector('h4').addEventListener('click', () => openModal(p.id));
-
-    productList.appendChild(item);
+    card.querySelector('.view-details-btn').addEventListener('click', () => openModal(product.id));
+    card.querySelector('.add-to-cart-btn').addEventListener('click', () => addToCart(product.id, 1));
+    card.querySelector('img').addEventListener('click', () => openModal(product.id));
+    card.querySelector('h4').addEventListener('click', () => openModal(product.id));
+    els.list.appendChild(card);
   });
-}
-
-function sortProducts(list, sortBy) {
-  const sorted = [...list];
-  switch (sortBy) {
-    case 'price-low':
-      return sorted.sort((a, b) => a.price - b.price);
-    case 'price-high':
-      return sorted.sort((a, b) => b.price - a.price);
-    case 'name':
-      return sorted.sort((a, b) => a.name.localeCompare(b.name));
-    default:
-      return sorted;
-  }
-}
-
-categoryFilter.addEventListener('change', () => {
-  setActivePill(categoryButtons, categoryFilter.value, 'category');
-  renderProducts();
-});
-sortSelect.addEventListener('change', renderProducts);
-<<<<<<< HEAD
-
-// "Shop by Category" pills stay in sync with the existing category <select>.
-function setActivePill(buttons, value, datasetKey) {
-  buttons.forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset[datasetKey] === value);
-  });
-}
-
-categoryButtons.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    categoryFilter.value = btn.dataset.category;
-    setActivePill(categoryButtons, btn.dataset.category, 'category');
-    renderProducts();
-  });
-});
-
-// "Shop by Vehicle Brand" filtering (Toyota, Ford, Honda).
-brandButtons.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    activeBrand = btn.dataset.brand;
-    setActivePill(brandButtons, btn.dataset.brand, 'brand');
-    renderProducts();
-  });
-});
-
-// Filter the product catalog as the user types or submits the search form.
-searchInput.addEventListener('input', () => {
-  searchQuery = searchInput.value;
-  renderProducts();
-});
-searchForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  searchQuery = searchInput.value;
-  renderProducts();
-});
-
-=======
->>>>>>> fd65bec32e1af7c8416f96110692f1677fe17646
-// Handle cart updates: add items, remove items, and keep totals in sync.
-function addToCart(productId, quantity) {
-  const product = products.find((p) => p.id === productId);
-  if (!product) return;
-
-  const existing = cart.find((c) => c.id === productId);
-  if (existing) {
-    existing.quantity += quantity;
-  } else {
-    cart.push({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      quantity,
-    });
-  }
-  renderCart();
-  openCart();
-  showToast('Item added to cart', 'success');
-}
-
-function updateQuantity(productId, delta) {
-  const item = cart.find((c) => c.id === productId);
-  if (!item) return;
-  item.quantity += delta;
-  if (item.quantity <= 0) {
-    removeFromCart(productId);
-    return;
-  }
-  renderCart();
-}
-
-function removeFromCart(productId) {
-  cart = cart.filter((c) => c.id !== productId);
-  renderCart();
 }
 
 function cartTotal() {
-  return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  return state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 }
 
 function cartCount() {
-  return cart.reduce((sum, item) => sum + item.quantity, 0);
+  return state.cart.reduce((sum, item) => sum + item.quantity, 0);
 }
 
 function renderCart() {
-  cartCountEl.textContent = cartCount();
-  navCartCountEl.textContent = cartCount();
-  cartTotalEl.textContent = `$${cartTotal().toFixed(2)}`;
+  const count = cartCount();
+  els.cartCount.textContent = count;
+  els.navCount.textContent = count;
+  els.cartTotal.textContent = `$${cartTotal().toFixed(2)}`;
 
-  if (cart.length === 0) {
-    cartItemsEl.innerHTML = '<p class="empty-cart">Your cart is empty</p>';
+  if (!state.cart.length) {
+    els.cartItems.innerHTML = '<p class="empty-cart">Your cart is empty</p>';
     return;
   }
 
-  cartItemsEl.innerHTML = '';
-  cart.forEach((item) => {
+  els.cartItems.innerHTML = '';
+  state.cart.forEach((item) => {
     const row = document.createElement('div');
     row.className = 'cart-item';
     row.innerHTML = `
-      <div class="cart-item-info">
-        <p class="cart-item-name">${escapeHTML(item.name)}</p>
-        <span class="cart-item-price">$${item.price.toFixed(2)}</span>
-        <span class="cart-item-qty">x${item.quantity}</span>
+      <div class='cart-item-info'>
+        <p class='cart-item-name'>${item.name}</p>
+        <span class='cart-item-price'>$${item.price.toFixed(2)}</span>
+        <span class='cart-item-qty'>x${item.quantity}</span>
       </div>
-      <button class="cart-item-remove">Remove</button>
+      <button class='cart-item-remove' type='button'>Remove</button>
     `;
     row.querySelector('.cart-item-remove').addEventListener('click', () => removeFromCart(item.id));
-    cartItemsEl.appendChild(row);
+    els.cartItems.appendChild(row);
   });
 }
 
-// Open and close the cart drawer.
-function openCart() {
-  cartSidebar.classList.add('open');
-}
-function closeCart() {
-  cartSidebar.classList.remove('open');
-}
-cartToggle.addEventListener('click', openCart);
-cartClose.addEventListener('click', closeCart);
-navCartBtn.addEventListener('click', openCart);
-
-// Basic login flow tied to the navbar profile icon.
-function openLoginModal() {
-  loginModal.classList.add('open');
-}
-function closeLoginModal() {
-  loginModal.classList.remove('open');
-}
-
-profileIconBtn.addEventListener('click', openLoginModal);
-loginModalClose.addEventListener('click', closeLoginModal);
-loginModal.addEventListener('click', (e) => {
-  if (e.target === loginModal) closeLoginModal();
-});
-
-loginForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const email = document.getElementById('login-email').value.trim();
-  if (!email) {
-    showToast('Please enter a valid email.', 'error');
-    return;
-  }
-  loginForm.reset();
-  closeLoginModal();
-  showToast('Login successful', 'success');
-});
-
-// Show a popup with more details about a product and let the user choose a
-// quantity before adding it to the cart.
-function openModal(productId) {
-  const product = products.find((p) => p.id === productId);
+function addToCart(id, qty) {
+  const product = state.products.find((item) => item.id === String(id));
   if (!product) return;
 
-  activeModalProductId = productId;
-  modalImage.src = product.image;
-  modalImage.alt = product.name;
-  modalTitle.textContent = product.name;
-  modalDescription.textContent = product.description;
-  modalPrice.textContent = `$${product.price.toFixed(2)}`;
-  modalStock.textContent = product.stock;
-  quantityInput.value = 1;
-  quantityInput.max = product.stock;
+  const amount = Math.max(1, Number(qty) || 1);
+  const existing = state.cart.find((item) => item.id === product.id);
 
-  modal.classList.add('open');
+  if (existing) {
+    const next = existing.quantity + amount;
+    if (next > product.stock) {
+      showToast(`Only ${product.stock} units available.`, 'error');
+      return;
+    }
+    existing.quantity = next;
+  } else {
+    if (amount > product.stock) {
+      showToast(`Only ${product.stock} units available.`, 'error');
+      return;
+    }
+    state.cart.push({ id: product.id, name: product.name, price: product.price, quantity: amount });
+  }
+
+  renderCart();
+  els.cart.classList.add('open');
+  showToast('Item added to cart', 'success');
+}
+
+function removeFromCart(id) {
+  state.cart = state.cart.filter((item) => item.id !== id);
+  renderCart();
+}
+
+function openModal(id) {
+  const product = state.products.find((item) => item.id === String(id));
+  if (!product) return;
+  state.modalId = product.id;
+  els.modalImage.src = product.image || 'images/default-product.jpg';
+  els.modalImage.alt = product.name;
+  els.modalTitle.textContent = product.name;
+  els.modalDesc.textContent = product.description;
+  els.modalPrice.textContent = `$${product.price.toFixed(2)}`;
+  els.modalStock.textContent = product.stock;
+  els.quantity.value = '1';
+  els.quantity.max = product.stock;
+  els.modal.classList.add('open');
 }
 
 function closeModal() {
-  modal.classList.remove('open');
-  activeModalProductId = null;
+  els.modal.classList.remove('open');
+  state.modalId = null;
 }
 
-modalClose.addEventListener('click', closeModal);
-modal.addEventListener('click', (e) => {
-  if (e.target === modal) closeModal();
-});
-
-qtyMinus.addEventListener('click', () => {
-  const val = Math.max(1, Number(quantityInput.value) - 1);
-  quantityInput.value = val;
-});
-qtyPlus.addEventListener('click', () => {
-  const max = Number(quantityInput.max) || Infinity;
-  const val = Math.min(max, Number(quantityInput.value) + 1);
-  quantityInput.value = val;
-});
-quantityInput.addEventListener('change', () => {
-  let val = Number(quantityInput.value);
-  const max = Number(quantityInput.max) || Infinity;
-  if (!val || val < 1) val = 1;
-  if (val > max) val = max;
-  quantityInput.value = val;
-});
-
-addToCartModalBtn.addEventListener('click', () => {
-  if (!activeModalProductId) return;
-  addToCart(activeModalProductId, Number(quantityInput.value) || 1);
-  closeModal();
-});
-
-// Send the cart to the backend to complete checkout.
 async function checkout() {
-  if (cart.length === 0) {
+  if (!state.cart.length) {
     showToast('Your cart is empty.', 'error');
     return;
   }
 
   const payload = {
-    cart: cart.map((item) => ({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-    })),
-    total: Number(cartTotal().toFixed(2)),
+    cart: state.cart.map((item) => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity })),
+    total: Number(cartTotal().toFixed(2))
   };
 
   try {
-    const res = await fetch(`${API_BASE}/checkout`, {
+    const response = await fetch(`${API_BASE}/checkout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     });
-
-    const result = await res.json();
-
-    if (!res.ok || !result.success) {
-      throw new Error(result.message || `Checkout failed with status ${res.status}`);
-    }
-
-    showToast(`Order placed! Order ID: ${result.orderId}`, 'success');
-
-    // Server-side render engine already cleared the cart and generated
-    // the empty-cart markup — use it directly instead of re-rendering client-side.
-    cart = result.cart ?? [];
-    cartItemsEl.innerHTML = result.cartItemsHTML;
-    cartTotalEl.textContent = result.cartTotalHTML;
-    cartCountEl.textContent = result.cartCount;
-    navCartCountEl.textContent = result.cartCount;
-
-    closeCart();
-  } catch (err) {
-    console.error('Checkout error:', err);
-    showToast('Checkout failed. Please try again.', 'error');
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || 'Checkout failed');
+    state.cart = [];
+    renderCart();
+    els.cart.classList.remove('open');
+    showToast(`Order placed! Order ID: ${result.orderId || 'N/A'}`, 'success');
+  } catch (error) {
+    console.error('Checkout error:', error);
+    showToast(error.message || 'Checkout failed. Please try again.', 'error');
   }
 }
 
-checkoutBtn.addEventListener('click', checkout);
+function bindEvents() {
+  els.category.addEventListener('change', () => {
+    setActivePill(els.categoryButtons, els.category.value, 'category');
+    renderProducts();
+  });
 
-// Run the main setup when the page has loaded.
+  els.sort.addEventListener('change', renderProducts);
+
+  els.categoryButtons.forEach((button) => button.addEventListener('click', () => {
+    els.category.value = button.dataset.category;
+    setActivePill(els.categoryButtons, button.dataset.category, 'category');
+    renderProducts();
+  }));
+
+  els.brandButtons.forEach((button) => button.addEventListener('click', () => {
+    state.brand = button.dataset.brand;
+    setActivePill(els.brandButtons, button.dataset.brand, 'brand');
+    renderProducts();
+  }));
+
+  els.searchInput.addEventListener('input', () => {
+    state.query = els.searchInput.value.trim();
+    renderProducts();
+  });
+
+  els.searchForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    state.query = els.searchInput.value.trim();
+    renderProducts();
+  });
+
+  els.cartToggle.addEventListener('click', () => els.cart.classList.add('open'));
+  els.cartClose.addEventListener('click', () => els.cart.classList.remove('open'));
+  els.navCart.addEventListener('click', () => els.cart.classList.add('open'));
+  els.profile.addEventListener('click', () => els.login.classList.add('open'));
+  els.closeLogin.addEventListener('click', () => els.login.classList.remove('open'));
+  els.login.addEventListener('click', (event) => {
+    if (event.target === els.login) els.login.classList.remove('open');
+  });
+
+  els.loginForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!valid) {
+      showToast('Please enter a valid email.', 'error');
+      return;
+    }
+    els.loginForm.reset();
+    els.login.classList.remove('open');
+    showToast('Login successful', 'success');
+  });
+
+  els.closeModal.addEventListener('click', closeModal);
+  els.modal.addEventListener('click', (event) => {
+    if (event.target === els.modal) closeModal();
+  });
+
+  els.qtyMinus.addEventListener('click', () => {
+    const next = Math.max(1, Number(els.quantity.value) - 1);
+    els.quantity.value = String(next);
+  });
+
+  els.qtyPlus.addEventListener('click', () => {
+    const max = Number(els.quantity.max) || Infinity;
+    const next = Math.min(max, Number(els.quantity.value) + 1);
+    els.quantity.value = String(next);
+  });
+
+  els.quantity.addEventListener('change', () => {
+    let value = Number(els.quantity.value);
+    const max = Number(els.quantity.max) || Infinity;
+    if (!value || value < 1) value = 1;
+    if (value > max) value = max;
+    els.quantity.value = String(value);
+  });
+
+  els.addModal.addEventListener('click', () => {
+    if (!state.modalId) return;
+    addToCart(state.modalId, Number(els.quantity.value) || 1);
+    closeModal();
+  });
+
+  els.checkout.addEventListener('click', checkout);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  loadProducts();
+  bindEvents();
   renderCart();
+  loadProducts();
 });
