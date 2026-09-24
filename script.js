@@ -1,5 +1,5 @@
 ﻿const API_BASE = '/api';
-const state = { cart: [], products: [], query: '', brand: '', modalId: null };
+const state = { cart: [], products: [], query: '', brand: '', modalId: null, lastOrder: null, isCheckingOut: false };
 const els = {
   list: document.getElementById('product-list'),
   category: document.getElementById('category-filter'),
@@ -10,6 +10,11 @@ const els = {
   cartCount: document.getElementById('cart-count'),
   navCount: document.getElementById('nav-cart-count'),
   checkout: document.querySelector('.checkout-btn'),
+  checkoutSuccess: document.getElementById('checkout-success'),
+  successOrderId: document.getElementById('success-order-id'),
+  successOrderItems: document.getElementById('success-order-items'),
+  continueShopping: document.getElementById('continue-shopping-btn'),
+  viewOrder: document.getElementById('view-order-btn'),
   searchForm: document.getElementById('search-form'),
   searchInput: document.getElementById('search-input'),
   login: document.getElementById('login-modal'),
@@ -32,7 +37,7 @@ const els = {
   qtyPlus: document.getElementById('qty-plus'),
   addModal: document.getElementById('add-to-cart-modal'),
   categoryButtons: document.querySelectorAll('#category-buttons .pill-btn'),
-  brandButtons: document.querySelectorAll('#brand-buttons .pill-btn') 
+  brandButtons: document.querySelectorAll('#brand-buttons .pill-btn')
 };
 
 function escapeHTML(value = '') {
@@ -182,7 +187,36 @@ function renderCart() {
   });
 }
 
+function hideCheckoutSuccess() {
+  if (!els.checkoutSuccess) return;
+  els.checkoutSuccess.classList.add('hidden');
+}
+
+function showCheckoutSuccess(order) {
+  if (!els.checkoutSuccess || !els.successOrderId || !els.successOrderItems) return;
+
+  const total = Number(order?.total ?? 0);
+  els.successOrderId.textContent = order?.orderId || 'N/A';
+  els.successOrderItems.innerHTML = '';
+
+  (order?.items || []).forEach((item) => {
+    const listItem = document.createElement('li');
+    listItem.textContent = `${item.name} x${item.quantity} — $${(Number(item.price) * Number(item.quantity)).toFixed(2)}`;
+    els.successOrderItems.appendChild(listItem);
+  });
+
+  const summaryText = document.createElement('li');
+  summaryText.className = 'summary-total';
+  summaryText.textContent = `Total: $${total.toFixed(2)}`;
+  els.successOrderItems.appendChild(summaryText);
+
+  els.checkoutSuccess.classList.remove('hidden');
+  els.checkoutSuccess.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function addToCart(id, qty) {
+  hideCheckoutSuccess();
+
   const product = state.products.find((item) => item.id === String(id));
   if (!product) return;
 
@@ -240,10 +274,16 @@ async function checkout() {
     return;
   }
 
+  if (state.isCheckingOut) return;
+
   const payload = {
     cart: state.cart.map((item) => ({ id: item.id, name: item.name, price: item.price, quantity: item.quantity })),
     total: Number(cartTotal().toFixed(2))
   };
+
+  state.isCheckingOut = true;
+  els.checkout.disabled = true;
+  els.checkout.textContent = 'Processing...';
 
   try {
     const response = await fetch(`${API_BASE}/checkout`, {
@@ -253,13 +293,21 @@ async function checkout() {
     });
     const result = await response.json();
     if (!response.ok || !result.success) throw new Error(result.message || 'Checkout failed');
+
+    state.lastOrder = result;
     state.cart = [];
     renderCart();
+    hideCheckoutSuccess();
     els.cart.classList.remove('open');
+    showCheckoutSuccess(result);
     showToast(`Order placed! Order ID: ${result.orderId || 'N/A'}`, 'success');
   } catch (error) {
     console.error('Checkout error:', error);
     showToast(error.message || 'Checkout failed. Please try again.', 'error');
+  } finally {
+    state.isCheckingOut = false;
+    els.checkout.disabled = false;
+    els.checkout.textContent = 'Proceed to Checkout';
   }
 }
 
@@ -347,10 +395,28 @@ function bindEvents() {
   });
 
   els.checkout.addEventListener('click', checkout);
+
+  els.continueShopping?.addEventListener('click', () => {
+    hideCheckoutSuccess();
+    document.getElementById('featured-products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  els.viewOrder?.addEventListener('click', () => {
+    if (!state.lastOrder) {
+      showToast('No recent order to view.', 'error');
+      return;
+    }
+
+    if (els.checkoutSuccess) {
+      els.checkoutSuccess.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    showToast(`Viewing order ${state.lastOrder.orderId}. Total: $${Number(state.lastOrder.total || 0).toFixed(2)}`, 'success');
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   bindEvents();
   renderCart();
   loadProducts();
+  hideCheckoutSuccess();
 });
