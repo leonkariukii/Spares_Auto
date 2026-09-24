@@ -101,6 +101,13 @@ body {
     background-color: rgba(255, 255, 255, 0.15);
 }
 
+.profile-label {
+    margin-left: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .nav-cart-badge {
     position: absolute;
     top: 0;
