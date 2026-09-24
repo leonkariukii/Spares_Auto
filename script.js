@@ -13,6 +13,15 @@ let products = [];
 
 const API_BASE = '/api';
 
+function escapeHTML(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Grab the main UI elements we need to update.
 const productList = document.getElementById('product-list');
 const categoryFilter = document.getElementById('category-filter');
@@ -152,9 +161,9 @@ function renderProducts() {
     item.dataset.stock = p.stock;
 
     item.innerHTML = `
-      <img src="${p.image}" alt="${p.name}">
-      <h4>${p.name}</h4>
-      <p>${p.description}</p>
+      <img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}">
+      <h4>${escapeHTML(p.name)}</h4>
+      <p>${escapeHTML(p.description)}</p>
       <div class="product-price">$${p.price.toFixed(2)}</div>
       <button class="view-details-btn">View Details</button>
       <button class="add-to-cart-btn">Add to Cart</button>
@@ -188,6 +197,7 @@ categoryFilter.addEventListener('change', () => {
   renderProducts();
 });
 sortSelect.addEventListener('change', renderProducts);
+<<<<<<< HEAD
 
 // "Shop by Category" pills stay in sync with the existing category <select>.
 function setActivePill(buttons, value, datasetKey) {
@@ -224,6 +234,8 @@ searchForm.addEventListener('submit', (e) => {
   renderProducts();
 });
 
+=======
+>>>>>>> fd65bec32e1af7c8416f96110692f1677fe17646
 // Handle cart updates: add items, remove items, and keep totals in sync.
 function addToCart(productId, quantity) {
   const product = products.find((p) => p.id === productId);
@@ -285,7 +297,7 @@ function renderCart() {
     row.className = 'cart-item';
     row.innerHTML = `
       <div class="cart-item-info">
-        <p class="cart-item-name">${item.name}</p>
+        <p class="cart-item-name">${escapeHTML(item.name)}</p>
         <span class="cart-item-price">$${item.price.toFixed(2)}</span>
         <span class="cart-item-qty">x${item.quantity}</span>
       </div>
