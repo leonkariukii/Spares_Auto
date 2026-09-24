@@ -26,6 +26,29 @@ const cartTotalEl = document.getElementById('cart-total');
 const cartCountEl = document.getElementById('cart-count');
 const checkoutBtn = document.querySelector('.checkout-btn');
 
+// Header navbar icons (profile/login + cart).
+const profileIconBtn = document.getElementById('profile-icon-btn');
+const navCartBtn = document.getElementById('nav-cart-btn');
+const navCartCountEl = document.getElementById('nav-cart-count');
+
+// Shop by Category / Shop by Vehicle Brand pill buttons.
+const categoryButtons = document.querySelectorAll('#category-buttons .pill-btn');
+const brandButtons = document.querySelectorAll('#brand-buttons .pill-btn');
+let activeBrand = '';
+
+// Header search bar.
+const searchForm = document.getElementById('search-form');
+const searchInput = document.getElementById('search-input');
+let searchQuery = '';
+
+// Login modal.
+const loginModal = document.getElementById('login-modal');
+const loginModalClose = document.getElementById('login-modal-close');
+const loginForm = document.getElementById('login-form');
+
+// Toast/alert container.
+const toastContainer = document.getElementById('toast-container');
+
 const modal = document.getElementById('product-modal');
 const modalClose = document.getElementById('modal-close');
 const modalImage = document.getElementById('modal-image');
@@ -39,6 +62,19 @@ const qtyPlus = document.getElementById('qty-plus');
 const addToCartModalBtn = document.getElementById('add-to-cart-modal');
 
 let activeModalProductId = null;
+
+// Central toast/alert system used for cart, login, and checkout feedback.
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  toastContainer.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
 
 // Load products from the backend. If that fails, use the product data already
 // rendered in the page.
@@ -62,6 +98,7 @@ function normalizeProducts(data) {
     name: p.name,
     price: Number(p.price),
     category: String(p.category || ''),
+    brand: String(p.brand || ''),
     stock: Number(p.stock),
     description: String(p.description || ''),
     image: p.image || '',
@@ -74,6 +111,7 @@ function readProductsFromDOM() {
     name: el.dataset.name,
     price: Number(el.dataset.price),
     category: String(el.dataset.category || ''),
+    brand: String(el.dataset.brand || ''),
     stock: Number(el.dataset.stock),
     description: String(el.querySelector('p')?.textContent || ''),
     image: el.querySelector('img')?.getAttribute('src') || '',
@@ -85,8 +123,15 @@ function readProductsFromDOM() {
 function renderProducts() {
   const category = categoryFilter.value;
   const sortBy = sortSelect.value;
+  const query = searchQuery.trim().toLowerCase();
 
   let visible = products.filter((p) => !category || p.category === category);
+  visible = visible.filter((p) => !activeBrand || p.brand === activeBrand);
+  if (query) {
+    visible = visible.filter(
+      (p) => p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query)
+    );
+  }
   visible = sortProducts(visible, sortBy);
 
   productList.innerHTML = '';
@@ -103,6 +148,7 @@ function renderProducts() {
     item.dataset.name = p.name;
     item.dataset.price = p.price;
     item.dataset.category = p.category;
+    item.dataset.brand = p.brand;
     item.dataset.stock = p.stock;
 
     item.innerHTML = `
@@ -137,8 +183,46 @@ function sortProducts(list, sortBy) {
   }
 }
 
-categoryFilter.addEventListener('change', renderProducts);
+categoryFilter.addEventListener('change', () => {
+  setActivePill(categoryButtons, categoryFilter.value, 'category');
+  renderProducts();
+});
 sortSelect.addEventListener('change', renderProducts);
+
+// "Shop by Category" pills stay in sync with the existing category <select>.
+function setActivePill(buttons, value, datasetKey) {
+  buttons.forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset[datasetKey] === value);
+  });
+}
+
+categoryButtons.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    categoryFilter.value = btn.dataset.category;
+    setActivePill(categoryButtons, btn.dataset.category, 'category');
+    renderProducts();
+  });
+});
+
+// "Shop by Vehicle Brand" filtering (Toyota, Ford, Honda).
+brandButtons.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    activeBrand = btn.dataset.brand;
+    setActivePill(brandButtons, btn.dataset.brand, 'brand');
+    renderProducts();
+  });
+});
+
+// Filter the product catalog as the user types or submits the search form.
+searchInput.addEventListener('input', () => {
+  searchQuery = searchInput.value;
+  renderProducts();
+});
+searchForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  searchQuery = searchInput.value;
+  renderProducts();
+});
 
 // Handle cart updates: add items, remove items, and keep totals in sync.
 function addToCart(productId, quantity) {
@@ -158,6 +242,7 @@ function addToCart(productId, quantity) {
   }
   renderCart();
   openCart();
+  showToast('Item added to cart', 'success');
 }
 
 function updateQuantity(productId, delta) {
@@ -186,6 +271,7 @@ function cartCount() {
 
 function renderCart() {
   cartCountEl.textContent = cartCount();
+  navCartCountEl.textContent = cartCount();
   cartTotalEl.textContent = `$${cartTotal().toFixed(2)}`;
 
   if (cart.length === 0) {
@@ -219,6 +305,33 @@ function closeCart() {
 }
 cartToggle.addEventListener('click', openCart);
 cartClose.addEventListener('click', closeCart);
+navCartBtn.addEventListener('click', openCart);
+
+// Basic login flow tied to the navbar profile icon.
+function openLoginModal() {
+  loginModal.classList.add('open');
+}
+function closeLoginModal() {
+  loginModal.classList.remove('open');
+}
+
+profileIconBtn.addEventListener('click', openLoginModal);
+loginModalClose.addEventListener('click', closeLoginModal);
+loginModal.addEventListener('click', (e) => {
+  if (e.target === loginModal) closeLoginModal();
+});
+
+loginForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) {
+    showToast('Please enter a valid email.', 'error');
+    return;
+  }
+  loginForm.reset();
+  closeLoginModal();
+  showToast('Login successful', 'success');
+});
 
 // Show a popup with more details about a product and let the user choose a
 // quantity before adding it to the cart.
@@ -275,7 +388,7 @@ addToCartModalBtn.addEventListener('click', () => {
 // Send the cart to the backend to complete checkout.
 async function checkout() {
   if (cart.length === 0) {
-    alert('Your cart is empty.');
+    showToast('Your cart is empty.', 'error');
     return;
   }
 
@@ -302,7 +415,7 @@ async function checkout() {
       throw new Error(result.message || `Checkout failed with status ${res.status}`);
     }
 
-    alert(`Order placed! Order ID: ${result.orderId}`);
+    showToast(`Order placed! Order ID: ${result.orderId}`, 'success');
 
     // Server-side render engine already cleared the cart and generated
     // the empty-cart markup — use it directly instead of re-rendering client-side.
@@ -310,11 +423,12 @@ async function checkout() {
     cartItemsEl.innerHTML = result.cartItemsHTML;
     cartTotalEl.textContent = result.cartTotalHTML;
     cartCountEl.textContent = result.cartCount;
+    navCartCountEl.textContent = result.cartCount;
 
     closeCart();
   } catch (err) {
     console.error('Checkout error:', err);
-    alert('Sorry, we could not complete checkout right now. Please try again.');
+    showToast('Checkout failed. Please try again.', 'error');
   }
 }
 
