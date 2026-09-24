@@ -57,6 +57,24 @@ function escapeHTML(value = '') {
   return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;');
 }
 
+async function parseJsonResponse(response) {
+  const text = await response.text();
+
+  if (!text) {
+    return null;
+  }
+
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  try {
+    return JSON.parse(trimmed);
+  } catch (error) {
+    console.error('Server returned non-JSON response:', trimmed.slice(0, 200));
+    throw new Error('The server responded with HTML instead of JSON. Check that the backend is running and the correct port is being used.');
+  }
+}
+
 function showToast(message, type = 'success') {
   if (!els.toast) return;
   const toast = document.createElement('div');
@@ -143,7 +161,7 @@ async function loadProducts() {
   try {
     const response = await fetch(`${API_BASE}/products`);
     if (!response.ok) throw new Error('Products API failed');
-    const data = await response.json();
+    const data = await parseJsonResponse(response);
     state.products = Array.isArray(data) ? data.map(normalizeProduct) : readProductsFromDOM();
   } catch (error) {
     console.warn('Using static products instead:', error.message);
@@ -353,8 +371,9 @@ async function checkout() {
       },
       body: JSON.stringify(payload)
     });
-    const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.message || 'Checkout failed');
+
+    const result = await parseJsonResponse(response);
+    if (!response.ok || !result.success) throw new Error(result?.message || 'Checkout failed');
 
     state.lastOrder = result;
     state.cart = [];
@@ -447,8 +466,8 @@ function bindEvents() {
         body: JSON.stringify({ email, password })
       });
 
-      const result = await response.json();
-      if (!response.ok || !result.success) throw new Error(result.message || 'Login failed');
+      const result = await parseJsonResponse(response);
+      if (!response.ok || !result.success) throw new Error(result?.message || 'Login failed');
 
       saveAuthSession(result.user, result.token);
       renderAuthUI();
