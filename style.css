@@ -59,10 +59,11 @@ body {
 .navbar {
     display: flex;
     justify-content: flex-start;
+    align-items: center;
     background-color: var(--primary-color);
     position: sticky;
-    top: 20px;
-    z-index: 100;
+    top: 0;
+    z-index: 1000;
     box-shadow: var(--shadow);
     flex-wrap: wrap;
 }
@@ -70,8 +71,51 @@ body {
 .navbar ul {
     display: flex;
     list-style: none;
-    width: 100%;
+    flex: 1 1 auto;
     flex-wrap: wrap;
+}
+
+/* ===== NAV ICONS (Profile/Login & Cart) ===== */
+.nav-icons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 15px;
+}
+
+.nav-icon-btn {
+    position: relative;
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+.nav-icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.nav-cart-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: var(--accent-color);
+    color: var(--white);
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
 }
 
 .navbar li {
@@ -123,6 +167,78 @@ main {
     opacity: 0.95;
     max-width: 600px;
     margin: 0 auto;
+}
+
+.search-form {
+    display: flex;
+    max-width: 500px;
+    margin: 25px auto 0;
+    gap: 10px;
+}
+
+.search-input {
+    flex-grow: 1;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.search-btn {
+    padding: 12px 20px;
+    background-color: var(--accent-color);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.search-btn:hover {
+    background-color: #e55a2b;
+}
+
+/* ===== SHOP BY CATEGORY / BRAND SECTIONS ===== */
+.shop-by-section {
+    padding: 10px 0 30px;
+    text-align: center;
+}
+
+.shop-by-section h3 {
+    font-size: 1.4rem;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.pill-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+.pill-btn {
+    padding: 8px 18px;
+    border: 2px solid var(--primary-color);
+    border-radius: 20px;
+    background-color: var(--white);
+    color: var(--primary-color);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.pill-btn:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: var(--white);
+}
+
+.pill-btn.active {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--white);
 }
 
 /* ===== FEATURED PRODUCTS SECTION ===== */
@@ -597,6 +713,118 @@ footer p {
 
 .add-to-cart-modal:hover {
     background-color: #e55a2b;
+}
+
+/* ===== LOGIN MODAL ===== */
+.login-modal-content {
+    max-width: 420px;
+}
+
+.login-modal-body {
+    padding: 40px;
+}
+
+.login-modal-body h2 {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#login-form label {
+    font-weight: 600;
+    color: var(--text-color);
+    margin-top: 10px;
+}
+
+#login-form input {
+    padding: 10px 12px;
+    border: 2px solid var(--light-bg);
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+#login-form input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.login-submit-btn {
+    margin-top: 20px;
+    padding: 12px 20px;
+    background-color: var(--accent-color);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.login-submit-btn:hover {
+    background-color: #e55a2b;
+}
+
+/* ===== ABOUT & CONTACT SECTIONS ===== */
+#about,
+#contact {
+    padding: 30px 0;
+    text-align: center;
+}
+
+#about h3,
+#contact h3 {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+#about p,
+#contact p {
+    max-width: 600px;
+    margin: 0 auto 6px;
+    color: var(--text-color);
+}
+
+/* ===== TOAST NOTIFICATIONS ===== */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    min-width: 240px;
+    max-width: 320px;
+    padding: 14px 18px;
+    border-radius: 6px;
+    color: var(--white);
+    background-color: var(--primary-color);
+    box-shadow: var(--shadow-hover);
+    font-weight: 600;
+    animation: slideIn 0.3s ease;
+}
+
+.toast.success {
+    background-color: #27ae60;
+}
+
+.toast.error {
+    background-color: #e74c3c;
+}
+
+.toast.fade-out {
+    animation: fadeIn 0.3s ease reverse;
 }
 
 /* ===== CONTROLS SECTION ===== */

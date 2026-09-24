@@ -22,6 +22,7 @@ let products = [
     name: 'Brake Pads',
     price: 45.99,
     category: 'pads',
+    brand: 'toyota',
     stock: 15,
     description: 'High-quality brake pads for various car models.',
     image: 'images/brake pads.jpg',
@@ -31,6 +32,7 @@ let products = [
     name: 'Oil Filters',
     price: 32.5,
     category: 'filters',
+    brand: 'ford',
     stock: 20,
     description: 'Durable oil filters to keep your engine running smoothly.',
     image: 'images/oil filter.jpg',
@@ -40,6 +42,7 @@ let products = [
     name: 'Spark Plugs',
     price: 28.99,
     category: 'plugs',
+    brand: 'honda',
     stock: 25,
     description: 'Reliable spark plugs for optimal engine performance.',
     image: 'images/spark plugs.jpg',
@@ -49,6 +52,7 @@ let products = [
     name: 'Air Filters',
     price: 22.0,
     category: 'filters',
+    brand: 'ford',
     stock: 18,
     description: 'High-efficiency air filters for clean airflow.',
     image: 'images/air filter.jpg',
@@ -141,7 +145,12 @@ app.post('/api/checkout', (req, res) => {
   // Create a unique order ID and calculate the total.
   orderSequence += 1;
   const orderId = `JOB-${orderSequence}`;
-  const computedTotal = cart.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+  // Ignore any price/total sent by the client. Always price each item from the
+  // authoritative server-side catalog to prevent a manipulated payload total.
+  const computedTotal = cart.reduce((sum, item) => {
+    const product = products.find((p) => p.id === String(item.id));
+    return sum + product.price * item.quantity;
+  }, 0);
 
   // Reset the cart state and return the empty-cart HTML to the client.
   const rendered = clearCart();
@@ -149,7 +158,7 @@ app.post('/api/checkout', (req, res) => {
   res.status(201).json({
     success: true,
     orderId,
-    total: Number((total ?? computedTotal).toFixed(2)),
+    total: Number(computedTotal.toFixed(2)),
     ...rendered,
   });
 });
