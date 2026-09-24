@@ -102,13 +102,16 @@
         
         <!-- Cart Toggle & Filter/Sort Section -->
         <section id="controls-section">
-            <div class="controls-left">
+            <div class="controls-intro">
+                <span class="controls-kicker">Your garage toolkit</span>
+                <h3>Find the right part</h3>
+                <p>Filter by category or sort the catalog to shop faster.</p>
+            </div>
+            <div class="controls-actions">
                 <button class="cart-toggle" id="cart-toggle">
                     Cart (<span id="cart-count">0</span>)
                 </button>
-            </div>
-            <div class="controls-right">
-                <div class="filter-group">
+                <div class="filter-group control-field">
                     <label for="category-filter">Category:</label>
                     <select id="category-filter">
                         <option value="">All Categories</option>
@@ -117,7 +120,7 @@
                         <option value="pads">Pads</option>
                     </select>
                 </div>
-                <div class="sort-group">
+                <div class="sort-group control-field">
                     <label for="sort-select">Sort by:</label>
                     <select id="sort-select">
                         <option value="default">Default</option>
@@ -142,10 +145,10 @@
         <section id="brands" class="shop-by-section">
             <h3>Shop by Vehicle Brand</h3>
             <div class="pill-buttons" id="brand-buttons">
-                <button type="button" class="pill-btn active" data-brand="">All Brands</button>
-                <button type="button" class="pill-btn" data-brand="toyota">Toyota</button>
-                <button type="button" class="pill-btn" data-brand="ford">Ford</button>
-                <button type="button" class="pill-btn" data-brand="honda">Honda</button>
+                <button type="button" class="pill-btn brand-pill active" data-brand=""><span class="brand-logo all-logo" aria-hidden="true">ALL</span>All Brands</button>
+                <button type="button" class="pill-btn brand-pill" data-brand="toyota"><span class="brand-logo toyota-logo" aria-hidden="true">T</span>Toyota</button>
+                <button type="button" class="pill-btn brand-pill" data-brand="ford"><span class="brand-logo ford-logo" aria-hidden="true">F</span>Ford</button>
+                <button type="button" class="pill-btn brand-pill" data-brand="honda"><span class="brand-logo honda-logo" aria-hidden="true">H</span>Honda</button>
             </div>
         </section>
 
