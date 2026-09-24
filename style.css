@@ -1009,28 +1009,43 @@ footer p {
 
 /* ===== CONTROLS SECTION ===== */
 #controls-section {
-    display: flex;
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.8fr);
     align-items: center;
-    padding: 20px;
-    background-color: var(--light-bg);
+    padding: 22px 25px;
+    background-color: var(--white);
+    border: 1px solid #e5e7eb;
+    border-left: 5px solid var(--accent-color);
     border-radius: 8px;
     margin-bottom: 30px;
-    gap: 20px;
-    flex-wrap: wrap;
+    gap: 25px;
+    box-shadow: var(--shadow);
 }
 
-.controls-left {
-    flex: none;
-    min-width: 150px;
+.controls-kicker {
+    color: var(--accent-color);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
 }
 
-.controls-right {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    flex: none;
+.controls-intro h3 {
+    color: var(--primary-color);
+    font-size: 1.3rem;
+    margin: 3px 0;
+}
+
+.controls-intro p {
+    color: #666;
+    font-size: 0.88rem;
+}
+
+.controls-actions {
+    display: grid;
+    grid-template-columns: auto repeat(2, minmax(160px, 1fr));
+    align-items: end;
+    gap: 14px;
 }
 
 .cart-toggle {
@@ -1055,8 +1070,9 @@ footer p {
 .filter-group,
 .sort-group {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 5px;
 }
 
 .filter-group label,
@@ -1084,6 +1100,50 @@ footer p {
 .sort-group select:focus {
     border-color: var(--accent-color);
     outline: none;
+}
+
+.brand-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.brand-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: var(--white);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.all-logo {
+    background-color: var(--primary-color);
+    font-size: 0.55rem;
+}
+
+.toyota-logo {
+    background-color: #eb0a1e;
+}
+
+.ford-logo {
+    background-color: #1769aa;
+    font-family: Georgia, serif;
+    font-style: italic;
+}
+
+.honda-logo {
+    background-color: #cc0000;
+}
+
+.brand-pill.active .brand-logo,
+.brand-pill:hover .brand-logo {
+    background-color: var(--white);
+    color: var(--accent-color);
 }
 
 /* ===== ENHANCED PRODUCT ITEMS ===== */
@@ -1190,6 +1250,15 @@ footer p {
         grid-template-columns: 1fr;
     }
 
+    #controls-section {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .controls-actions {
+        grid-template-columns: 1fr;
+    }
+
     .about-stats {
         grid-template-columns: 1fr;
         gap: 12px;
@@ -1211,14 +1280,9 @@ footer p {
         align-items: stretch;
     }
     
-    .controls-left,
-    .controls-right {
+    .controls-actions {
         width: 100%;
         flex: none;
-    }
-    
-    .controls-right {
-        flex-direction: column;
     }
     
     .filter-group,
