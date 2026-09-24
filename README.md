@@ -21,84 +21,140 @@ The project was developed to demonstrate practical skills in:
 - UI/UX Design
 - Micro-interactions
 - Performance Optimization
-- Cross-browser Compatibility
+Spares_Auto is a responsive automotive spare-parts storefront built with HTML, CSS, JavaScript, and a lightweight Express backend. The project evolved from a static product catalogue into a working e-commerce-style experience with a shopping cart, login flow, protected checkout, and polished user feedback.
 - Git and GitHub
 
 The project is currently focused on the **frontend user interface**. Backend functionality, authentication, payment processing, inventory management, and database integration can be added in future versions.
-
+This project now includes a complete front-end customer journey for a spare-parts retailer:
 ## 🎯 Project Objectives
+- Product gallery with automotive parts such as brake pads, oil filters, spark plugs, and air filters
+- Search and category filtering
+- Brand and category pill filters
+- Sort options for price and product name
+- Add-to-cart interactions with live cart totals
+- Cart drawer with quantity updates and item removal
+- Checkout flow protected by authentication
+- Login modal and mock user session system
+- Order confirmation panel after successful checkout
+- Responsive layout that works across desktop, tablet, and mobile screens
+- Toast notifications and success/error states for user feedback
 
 The main objectives of AutoSpares Shop are to:
 
-- Build a professional automotive e-commerce interface.
+The application was designed to demonstrate a realistic storefront experience for a small automotive parts business. The goal was to combine visual design with working interactivity so the site feels like a usable shop rather than a static mockup.
 - Create a responsive product catalogue.
 - Use CSS Grid for product layout.
 - Create reusable product cards.
 - Implement product hover effects.
 - Create a product-detail modal.
-- Design a shopping-cart sidebar.
+The product catalogue is rendered dynamically from app state and product data. Each item includes a name, description, price, stock status, and image. Product cards support both quick view and add-to-cart actions.
 - Provide filter and sorting interfaces.
 - Implement dark mode.
 - Maintain a consistent design system.
-- Apply accessibility principles.
+Users can add products to the cart, see the count update in the navigation, and review items in a slide-out cart panel. Each cart item can be removed individually and totals are recalculated automatically.
 - Optimize the website for performance.
 - Test the website across modern browsers and devices.
 - Practice Git-based development and collaboration.
-  
+The app includes a login modal with email and password validation. A mock backend authentication system verifies credentials and issues a token for the session. This token is stored locally and used to protect the checkout route.
 ## ✨ Features
 
 ### 🛍️ Product Catalogue
-
+Checkout is only allowed when a user is logged in. The backend validates the Bearer token and confirms the cart before creating an order. Once the order is successful, the cart is cleared and a success summary is displayed to the customer.
 The application displays automotive spare parts using a responsive product grid.
 
 Each product card includes:
-
+After checkout, the user sees a confirmation section with:
 - Product image
+- generated order ID
+- order items summary
+- final total
+- continue shopping option
 - Product name
 - Product description
 - Product price
-- Rating stars
+The interface includes:
 - Add-to-cart button
+- responsive layout styling
+- hover states and micro-interactions
+- modal components for product details and login
+- toast messages for state changes
+- subtle success/error feedback patterns
 - Product details action
 
 The product grid is built using **CSS Grid** and automatically adapts to different screen sizes.
+The project focuses on:
 
-
+- clean storefront UI
+- customer-friendly product browsing
+- interactive cart behaviour
+- secure-feeling checkout flow
+- a lightweight backend API for mock commerce operations
 ### 🔎 Filter and Sort Interface
 
 The product catalogue includes a user interface for filtering and sorting products.
-
+1. Open a terminal in the project root.
+2. Install the dependencies:
 Available options include:
+	npm install
 
+3. Start the backend server:
 - Product category
+	node backend/server.js
 - Price range
+4. If you want to use a custom port, for example 3210:
 - Rating
+	Windows PowerShell:
+	$env:PORT = 3210; node backend/server.js
 - Availability
+	Bash/macOS/Linux:
+	PORT=3210 node backend/server.js
 - Price: Low to High
+5. Open the app in the browser at:
 - Price: High to Low
+	http://localhost:3000
 - Popularity
+	or the custom port you selected, such as:
 - Newest products
+	http://localhost:3210
 
 > **Note:** The current implementation focuses on the UI. Functional filtering and sorting logic can be implemented in a future version.
 
 
 ### 📦 Product Detail Modal
-
+The Express server exposes the following endpoints:
 Users can select a product to view additional information in a product-detail modal.
+- GET /api/products — returns the available product list
+- POST /api/login — authenticates a user and returns a token
+- GET /api/me — returns the authenticated user profile
+- POST /api/checkout — validates a cart and creates an order for an authenticated user
 
 The modal can contain:
 
-- Product image
+The current implementation was tested for the key storefront flows:
 - Product name
+- product loading
+- cart updates
+- login success and failure states
+- authenticated checkout
+- order creation
+- success UI rendering
 - Product price
 - Rating
 - Product description
-- Vehicle compatibility
+Potential improvements for the next phase include:
 - Availability
+- real database storage for products and users
+- secure password hashing
+- persistent carts and sessions
+- payment integration
+- inventory management dashboard
+- admin panel for stock updates
+- order history page
+- user registration and password reset
 - Add-to-cart button
 
 The modal allows users to inspect products without leaving the main catalogue.
-
+Spares_Auto has evolved from a design-focused product showcase into a functioning e-commerce prototype with customer interaction, login-based checkout, and a working backend API. It now demonstrates a much more complete view of what a modern automotive spare-parts shop could look like in a real implementation.
 ### 🛒 Shopping Cart Sidebar
 
 The project includes a static shopping-cart sidebar.
