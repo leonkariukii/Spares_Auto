@@ -47,6 +47,22 @@
         </div>
     </aside>
 
+    <section id="checkout-success" class="checkout-success hidden" aria-live="polite">
+        <div class="success-card">
+            <div class="success-icon" aria-hidden="true">✓</div>
+            <h3>Order placed successfully!</h3>
+            <p>Your order ID is <strong id="success-order-id">N/A</strong></p>
+            <div class="success-order-summary">
+                <h4>Order summary</h4>
+                <ul id="success-order-items"></ul>
+            </div>
+            <div class="success-actions">
+                <button class="secondary-btn" id="continue-shopping-btn" type="button">Continue Shopping</button>
+                <button class="primary-btn" id="view-order-btn" type="button">View Order</button>
+            </div>
+        </div>
+    </section>
+
     <!-- Login Modal -->
     <div id="login-modal" class="modal">
         <div class="modal-content login-modal-content">
