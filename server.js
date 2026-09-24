@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); // Serve the frontend files.
+app.use(express.static(__dirname)); // Serve the frontend files from the project root.
 
 // Simple in-memory product catalog. This acts like a database for now.
 let products = [
