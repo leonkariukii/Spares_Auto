@@ -2,11 +2,15 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
+// Create the Express app and set the port.
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
+// This tells the server where the frontend files are stored.
 const projectRoot = path.join(__dirname, '..');
 
+// Demo users for login.
+// In a real app, you would normally store these in a database and hash passwords.
 const users = [
   {
     id: 'u-1001',
@@ -22,8 +26,12 @@ const users = [
   }
 ];
 
+// Store active login sessions using a token as the key.
+// Each token maps to the logged-in user's ID.
 const sessions = new Map();
 
+// Product list used by the store.
+// This is a simple in-memory catalog for the demo application.
 const products = [
   {
     id: '1',
@@ -67,10 +75,13 @@ const products = [
   }
 ];
 
+// Allow frontend requests from another port and parse JSON request bodies.
 app.use(cors());
 app.use(express.json());
 app.use(express.static(projectRoot));
 
+// Middleware to protect routes that need a logged-in user.
+// It checks whether the request includes a valid bearer token.
 function authenticate(req, res, next) {
   const authHeader = req.headers.authorization || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -96,10 +107,12 @@ function authenticate(req, res, next) {
   next();
 }
 
+// Return all products to the frontend.
 app.get('/api/products', (req, res) => {
   res.json(products);
 });
 
+// Login route: check the email and password, then create a session token.
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body || {};
 
@@ -136,6 +149,7 @@ app.post('/api/login', (req, res) => {
   });
 });
 
+// Get the current logged-in user without sending the password.
 app.get('/api/me', authenticate, (req, res) => {
   const { password, ...safeUser } = req.user;
   res.json({
@@ -144,6 +158,7 @@ app.get('/api/me', authenticate, (req, res) => {
   });
 });
 
+// Checkout route: validate the cart, calculate the total, and reduce stock.
 app.post('/api/checkout', authenticate, (req, res) => {
   const { cart } = req.body;
 
@@ -209,6 +224,7 @@ app.post('/api/checkout', authenticate, (req, res) => {
   });
 });
 
+// Start the server and print the local URL.
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
