@@ -1,4 +1,7 @@
 ﻿const API_BASE = '/api';
+
+// This keeps the main app data in one place.
+// The UI can read and update this object whenever the cart, filters, or login state changes.
 const state = {
   cart: [],
   products: [],
@@ -13,6 +16,8 @@ const state = {
   }
 };
 
+// These elements are grabbed once so we can reuse them in many functions.
+// This keeps the code cleaner and avoids repeating document.getElementById all over the page.
 const els = {
   list: document.getElementById('product-list'),
   category: document.getElementById('category-filter'),
@@ -53,10 +58,14 @@ const els = {
   brandButtons: document.querySelectorAll('#brand-buttons .pill-btn')
 };
 
+// Simple helper to protect text before inserting it into HTML.
+// This prevents characters like < and > from breaking the page.
 function escapeHTML(value = '') {
   return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;');
 }
 
+// This helper reads the response text and turns it into a JavaScript object.
+// If the backend sends invalid data, we throw a clear error to help with debugging.
 async function parseJsonResponse(response) {
   const text = await response.text();
 
@@ -75,6 +84,8 @@ async function parseJsonResponse(response) {
   }
 }
 
+// A small notification box for user feedback.
+// This is used for things like successful login, cart updates, and checkout errors.
 function showToast(message, type = 'success') {
   if (!els.toast) return;
   const toast = document.createElement('div');
@@ -87,6 +98,8 @@ function showToast(message, type = 'success') {
   }, 3000);
 }
 
+// Make sure each product object follows the same structure.
+// This avoids errors when data comes from the API or the static HTML page.
 function normalizeProduct(product) {
   return {
     id: String(product.id),
@@ -189,6 +202,8 @@ function getVisibleProducts() {
   return items;
 }
 
+// Rebuild the product list based on the current filters, search, and sort option.
+// This is a simple example of re-rendering the UI when state changes.
 function renderProducts() {
   els.list.innerHTML = '';
   const items = getVisibleProducts();
@@ -230,6 +245,8 @@ function cartCount() {
   return state.cart.reduce((sum, item) => sum + item.quantity, 0);
 }
 
+// Update the shopping cart panel and the cart badges in the page.
+// The cart total and item count are calculated from the current state each time.
 function renderCart() {
   const count = cartCount();
   els.cartCount.textContent = count;
@@ -339,6 +356,8 @@ function closeModal() {
   state.modalId = null;
 }
 
+// Process a real checkout request.
+// We validate the cart, the login session, and then send the order to the backend.
 async function checkout() {
   if (!state.cart.length) {
     showToast('Your cart is empty.', 'error');
@@ -392,6 +411,8 @@ async function checkout() {
   }
 }
 
+// Connect page controls to the app logic.
+// When a user clicks a button or changes a filter, the app updates state and re-renders the UI.
 function bindEvents() {
   els.category.addEventListener('change', () => {
     setActivePill(els.categoryButtons, els.category.value, 'category');
@@ -530,6 +551,7 @@ function bindEvents() {
   });
 }
 
+// When the page is ready, restore the logged-in user if one exists and then start the app.
 document.addEventListener('DOMContentLoaded', () => {
   const restoredAuth = getStoredAuth();
   state.auth.user = restoredAuth.user;
